@@ -1,0 +1,123 @@
+       #region Child Edu Exp List
+
+        public List<_Child_Education_Exception_List> GET_Child_Education_Exception_List(int BR_ID, int EMP_ID, string FROM_DATE, string TO_DATE, int STATUS)
+        {
+            SqlParameter[] param = { new SqlParameter("@BR_ID",BR_ID),
+                                     new SqlParameter("@EMP_ID",EMP_ID), 
+                                     new SqlParameter("@FROM_DATE",FROM_DATE), 
+                                     new SqlParameter("@TO_DATE",TO_DATE),
+                                     new SqlParameter("@STATUS",STATUS)
+                                   };
+            DataTable dt = new DataAccess(sqlConnection.GetConnectionString()).GetDataTable("[iTMS].[USP_GET_CHILD_EDUCATION_EXCEPTION_DATA_LIST]", CommandType.StoredProcedure, param);
+            List<_Child_Education_Exception_List> _list = new List<_Child_Education_Exception_List>();
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                foreach (DataRow row in dt.Rows)
+                {
+                    _Child_Education_Exception_List objFLNT = new _Child_Education_Exception_List();
+                    objFLNT.chCEA_EXP_ID = Convert.ToInt32(row["CEA_EXP_ID"] == DBNull.Value ? "0" : row["CEA_EXP_ID"]);
+                    objFLNT.chCEA_EXP_BR_ID = Convert.ToInt32(row["CEA_EXP_BR_ID"] == DBNull.Value ? "0" : row["CEA_EXP_BR_ID"]);
+                    objFLNT.chCEA_EXP_CBS_BRANCH = Convert.ToString(row["BR_NAME"] == DBNull.Value ? "" : row["BR_NAME"]);
+                    objFLNT.chCEA_EXP_CBS_DATE = Convert.ToString(row["CEA_EXP_CBS_DATE"] == DBNull.Value ? "" : row["CEA_EXP_CBS_DATE"]);
+                    objFLNT.chCEA_EXP_EMP_ID = Convert.ToInt32(row["CEA_EXP_EMP_ID"] == DBNull.Value ? "" : row["CEA_EXP_EMP_ID"]);
+                    objFLNT.chCEA_EXP_AMT = Convert.ToDecimal(row["CEA_EXP_AMT"] == DBNull.Value ? "0" : row["CEA_EXP_AMT"]);               
+                    objFLNT.chCEA_EXP_APP_STATUS = Convert.ToString(row["CEA_EXP_APP_STATUS"] == DBNull.Value ? "" : row["CEA_EXP_APP_STATUS"]);
+
+                    objFLNT.chCEA_EXP_EMP_Name = Convert.ToString(row["EMP_NAME"] == DBNull.Value ? "" : row["EMP_NAME"]);
+                _list.Add(objFLNT);
+                }
+            }
+            return _list;
+        }
+
+
+
+
+      
+
+
+        public string INSERT_CHILD_EDUCATION_EXCEPTION_ENTRY(Child_Education_Exception_Entry objCEEE)
+        {
+            string errorMsg = "";
+            //decimal CEA_EXP_ID=0;
+          
+            using (var connection = new SqlConnection(sqlConnection.GetConnectionString()))
+            {
+                connection.Open();
+                SqlCommand command;
+                SqlTransaction transactionScope = null;
+                transactionScope = connection.BeginTransaction(IsolationLevel.ReadCommitted);
+                try
+                {
+                    SqlParameter[] param =
+                    {
+                         new SqlParameter("@ERRORSTR", SqlDbType.VarChar, 200)    
+                        ,new SqlParameter("@CEA_EXP_ID", SqlDbType.Decimal)
+                        ,new SqlParameter("@CEA_EXP_EMP_ID",  (objCEEE.CEA_EXP_EMP_ID==null)?(object)DBNull.Value:  Convert.ToInt32(objCEEE.CEA_EXP_EMP_ID) )                       
+                         ,new SqlParameter("@CEA_EXP_BR_ID", (objCEEE.DRCRALW_CBS_BR_ID==null)?(object)DBNull.Value: objCEEE.DRCRALW_CBS_BR_ID)  
+                         ,new SqlParameter("@CEA_EXP_CBS_DATE",objCEEE.DRCRALW_CBS_DATE1)  
+                        ,new SqlParameter("@CEA_EXP_AMT", (objCEEE.CEA_EXP_AMT==null)?(object)DBNull.Value:objCEEE.CEA_EXP_AMT)
+                       
+                        ,new SqlParameter("@CEA_EXP_ADD_BY", (objCEEE.CEA_EXP_ADD_BY==null)?(object)DBNull.Value:objCEEE.CEA_EXP_ADD_BY)  
+                       ,new SqlParameter("@CEA_EXP_REMARKS", (objCEEE.CEA_EXP_REMARKS==null)?(object)DBNull.Value:objCEEE.CEA_EXP_REMARKS)
+                        ,new SqlParameter("@CEA_EXP_EMP_NAME", (objCEEE.CEA_EXP_EMP_NAME==null)?(object)DBNull.Value:objCEEE.CEA_EXP_EMP_NAME)
+                       
+                       
+                    };
+
+                    param[0].Direction = ParameterDirection.Output;
+                    param[1].Direction = ParameterDirection.Output;
+                
+                    new DataAccess().InsertWithTransaction("[iFMS].[USP_INSERT_CHILD_EDUCATION_EXCEPTION_ENTRY]", CommandType.StoredProcedure, out command, connection, transactionScope, param);
+                    decimal intRQMSPY_ID = (decimal)command.Parameters["@CEA_EXP_ID"].Value;
+                string error_1 = (string)command.Parameters["@ERRORSTR"].Value;
+                if (intRQMSPY_ID == -1) { errorMsg = error_1; }
+                objCEEE.CEA_EXP_ID = intRQMSPY_ID;
+
+                    if (errorMsg == "")
+                    {
+                        transactionScope.Commit();
+                    }
+                    else
+                    {
+                        transactionScope.Rollback();
+                    }
+                }
+                catch (Exception)
+                {
+                    errorMsg = "Error: Exception occured.";
+                    transactionScope.Rollback();
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+            return errorMsg;
+        }
+
+
+        public string UPDATE_APPROVE_Child_Edu_Excepton(Child_Edu_Exp_List_Approved objTBL_APPROVE_Child_Edu_Excepton)
+        {
+
+            SqlParameter[] parameters = new SqlParameter[5];
+            parameters[0] = new SqlParameter("@ERRORSTR", SqlDbType.VarChar, 200);
+            parameters[0].Direction = ParameterDirection.Output;
+
+            parameters[1] = new SqlParameter("@CEA_EXP_ID", objTBL_APPROVE_Child_Edu_Excepton.chCEA_EXP_ID);
+
+            parameters[2] = new SqlParameter("@CEA_EXP_APP_REMARKS", (objTBL_APPROVE_Child_Edu_Excepton.chCEA_EXP_APP_REMARKS == null) ? (object)DBNull.Value : objTBL_APPROVE_Child_Edu_Excepton.chCEA_EXP_APP_REMARKS);
+
+            parameters[3] = new SqlParameter("@CEA_EXP_APP_BY", objTBL_APPROVE_Child_Edu_Excepton.chCEA_EXP_APP_BY);
+            parameters[4] = new SqlParameter("@CEA_EXP_APP_STATUS", objTBL_APPROVE_Child_Edu_Excepton.chCEA_EXP_APP_STATUS);
+            string _trERRORSTR = "";
+            SqlCommand command;
+            new DataAccess(sqlConnection.GetConnectionString()).Insert("[iTMS].[USP_UPDATE_APPROVE_CHILD_EDU_EXCEPTION]", CommandType.StoredProcedure, out command, parameters);
+            _trERRORSTR = command.Parameters["@ERRORSTR"].Value.ToString();
+            return _trERRORSTR;
+        }
+
+
+        
+
+        #endregion
